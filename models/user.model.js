@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema(
       password: {
         type: String,
         required: true,
+      },
+      accessStartDate: {
+        type: String,
+        required: false,
+      },
+      accessExpiryDate: {
+        type: String,
+        required: false,
       }
     },
     { collection: "users" }
