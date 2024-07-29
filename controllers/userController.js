@@ -1,4 +1,3 @@
-import bcrypt from "bcryptjs";
 import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -7,6 +6,7 @@ dotenv.config();
 // register new user
 export const registerUser = async (req, res) => {
   const { email, phoneNumber, userName, password } = req.body;
+  
   try {
     const existingUser = await userModel.findOne({
       $or: [{ email: email }, { userName: userName }],
@@ -14,7 +14,6 @@ export const registerUser = async (req, res) => {
     if (existingUser) {
       return res.status(409).json({ error: "User already exists" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
     const accessStartDate = new Date();
     const accessExpiryDate = new Date(accessStartDate);
     accessExpiryDate.setFullYear(accessExpiryDate.getFullYear() + 1);
@@ -23,9 +22,9 @@ export const registerUser = async (req, res) => {
       email,
       phoneNumber,
       userName,
-      password: hashedPassword,
-      accessStartDate,
-      accessExpiryDate,
+      password,
+      startDate,
+      endDate,
     });
 
     await newUser.save();
@@ -47,27 +46,27 @@ export const loginUser = async (req, res) => {
     }
 
     // check password
-    const isMatch = await bcrypt.compare(password, userData.password);
+    const isMatch = password === userData.password;
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid password" });
     }
 
-    // check accessExpiryDate
+    // check end date
     const currentDate = new Date();
-    const accessExpiryDate = new Date(userData.accessExpiryDate);
-    if (currentDate > accessExpiryDate) {
+    const endDate = new Date(userData.endDate);
+    if (currentDate > endDate) {
       return res.status(403).json({ error: "Account Expired" });
     }
 
     const userName = userData.userName;
 
+    // create a token 
     const token = jwt.sign(
       { id: userData._id, userName },
-      process.env.SECRET_KEY,
-      {
-        expiresIn: "96h",
-      }
+      process.env.SECRET_KEY
     );
+    
+    // sending username and token to frontend 
     res.status(200).json({ userName, token });
   } catch (error) {
     console.error("Error during login:", error);
