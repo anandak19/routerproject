@@ -14,9 +14,9 @@ export const registerUser = async (req, res) => {
     if (existingUser) {
       return res.status(409).json({ error: "User already exists" });
     }
-    const accessStartDate = new Date();
-    const accessExpiryDate = new Date(accessStartDate);
-    accessExpiryDate.setFullYear(accessExpiryDate.getFullYear() + 1);
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setFullYear(endDate.getFullYear() + 1);
 
     const newUser = new userModel({
       email,
