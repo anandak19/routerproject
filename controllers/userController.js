@@ -38,6 +38,8 @@ export const registerUser = async (req, res) => {
 // login user
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  console.log(email, password);
+  
 
   try {
     const userData = await userModel.findOne({ email });
