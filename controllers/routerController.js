@@ -1,36 +1,19 @@
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-import userModel from "../models/user.model.js";
+import { authenticateUser } from "../middlewares/auth.js";
 import routerModel from "../models/router.model.js";
-dotenv.config();
 
+// to add new router 
 export const addRouter = async (req, res) => {
-
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ message: "Authorization header is missing" });
+  const authResult = await authenticateUser(req, res);
+  if (authResult.status !== 200) {
+    return res.status(authResult.status).json(authResult.response);
   }
 
-  const token = authHeader.split(" ")[1];
-  const decoded = jwt.verify(token, process.env.SECRET_KEY);
-  const userId = decoded.id;
+  const { user } = authResult;
+  const { dns, port, userName, password, hotspot, deviceName } = req.body;
 
   try {
-    const user = await userModel.findById(userId);
-    if (!user) {
-      return res.status(401).json({ message: "Access denied!" });
-    }
-
-    // check end date
-    const currentDate = new Date();
-    const endDate = new Date(user.endDate);
-    if (currentDate > endDate) {
-      return res.status(403).json({ error: "Account Expired" });
-    }
-    const { dns, port, userName, password, hotspot, deviceName } = req.body;
-
     const newRouter = new routerModel({
-      userId,
+      userId: user._id,
       dns,
       port,
       userName,
@@ -38,12 +21,35 @@ export const addRouter = async (req, res) => {
       hotspot,
       deviceName,
     });
-    console.log(newRouter);
-    
+
     await newRouter.save();
     res.status(201).json({ message: "Router added successfully" });
   } catch (error) {
     console.error("Error adding router:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// to get all routers of a user
+export const getRouterByUserId = async (req, res) => {
+  const authResult = await authenticateUser(req, res);
+  if (authResult.status !== 200) {
+    return res.status(authResult.status).json(authResult.response);
+  }
+
+  const { user } = authResult;
+
+  try {
+
+    const routers = await routerModel.find({ userId: user._id });
+    if (routers.length > 0) {
+      return res.status(200).json(routers);
+    } else {
+      return res.status(404).json({ message: "No routers found for this user" });
+    }
+
+  } catch (error) {
+    console.error("Error fetching routers:", error);
+    return res.status(500).json({ error: "Internal server error" }); 
   }
 };

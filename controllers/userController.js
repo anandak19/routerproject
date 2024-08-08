@@ -38,8 +38,6 @@ export const registerUser = async (req, res) => {
 // login user
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  console.log(email, password);
-  
 
   try {
     const userData = await userModel.findOne({ email });
@@ -60,9 +58,8 @@ export const loginUser = async (req, res) => {
       return res.status(403).json({ error: "Account Expired" });
     }
 
-    const userName = userData.userName;
-
     // create a token 
+    const userName = userData.userName;
     const token = jwt.sign(
       { id: userData._id, userName },
       process.env.SECRET_KEY
