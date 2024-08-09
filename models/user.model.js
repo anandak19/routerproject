@@ -18,11 +18,11 @@ const userSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
-      accessStartDate: {
+      startDate: {
         type: String,
         required: false,
       },
-      accessExpiryDate: {
+      endDate: {
         type: String,
         required: false,
       }

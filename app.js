@@ -1,5 +1,6 @@
 import express from "express";
 import userRoutes from "./routes/userRoutes.js";
+import routerRoute from "./routes/routerRoute.js";
 import cors from "cors"
 
 export const app = express();
@@ -11,3 +12,4 @@ app.get("/", (req, res) => {
   });
   
 app.use("/api", userRoutes)
+app.use("/api", routerRoute)
