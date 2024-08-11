@@ -1,6 +1,7 @@
 import { authenticateUser } from "../middlewares/auth.js";
 import routerModel from "../models/router.model.js";
 import userModel from "../models/user.model.js";
+import mongoose from "mongoose";
 
 // to add new router
 export const addRouter = async (req, res) => {
@@ -10,7 +11,7 @@ export const addRouter = async (req, res) => {
   }
 
   const { user } = authResult;
-  
+
   const { dns, port, userName, password, hotspot, deviceName } = req.body;
 
   try {
@@ -39,7 +40,9 @@ export const addRouter = async (req, res) => {
     });
 
     if (userRouter) {
-      return res.status(409).json({ message: "Router already exists for the user" });
+      return res
+        .status(409)
+        .json({ message: "Router already exists for the user" });
     }
 
     // Save the router ID to the user's router array
@@ -58,7 +61,6 @@ export const addRouter = async (req, res) => {
 
     // Return success response
     return res.status(201).json({ message: "Router added successfully" });
-
   } catch (error) {
     console.error("Error adding router:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -73,18 +75,61 @@ export const getRouterByUserId = async (req, res) => {
   }
 
   const { user } = authResult;
-  const routers = user.routers
-  const userWithRouters = await userModel.findById(user._id).populate('routers.router');
+  const routers = user.routers;
+  const userWithRouters = await userModel
+    .findById(user._id)
+    .populate("routers.router");
 
   try {
-
     if (!userWithRouters || userWithRouters.routers.length === 0) {
-      return res.status(404).json({ message: "No routers found for this user" });
+      return res
+        .status(404)
+        .json({ message: "No routers found for this user" });
     }
 
     return res.status(200).json(userWithRouters.routers);
   } catch (error) {
     console.error("Error fetching routers:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// to delete a router 
+export const deleteOneRouter = async (req, res) => {
+  const authResult = await authenticateUser(req, res);
+  if (authResult.status !== 200) {
+    return res.status(authResult.status).json(authResult.response);
+  }
+
+  const { user } = authResult;
+  const { routerId } = req.params;
+
+  try {
+    const routerObjectId = mongoose.Types.ObjectId.createFromHexString(routerId)
+    const updatedUser = await userModel.findByIdAndUpdate(
+      user._id,
+      {
+        $pull: { routers: { router: routerObjectId } }, 
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const routerExists = updatedUser.routers.some(
+      (r) => r.router.toString() === routerId
+    );
+    if (routerExists) {
+      return res
+        .status(404)
+        .json({ message: "Router not found or not deleted" });
+    }
+
+    return res.status(200).json({ message: "Router deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting router:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
