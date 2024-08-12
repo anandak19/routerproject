@@ -25,9 +25,20 @@ const userSchema = new mongoose.Schema(
       endDate: {
         type: String,
         required: false,
-      }
-    },
-    { collection: "users" }
+      },
+      routers: [
+        {
+          router: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Router'
+          },
+          addedAt: {
+            type: Date,
+            default: Date.now
+          }
+        }
+      ],
+    }
   );
   
   export default mongoose.model("User", userSchema);

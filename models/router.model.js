@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const routerSchema = new mongoose.Schema({
-  userId: {
+  userAdded: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Users",
     default: null, 
