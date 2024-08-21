@@ -1,10 +1,11 @@
 import userModel from "../models/user.model.js";
+import { authenticateUser } from "../middlewares/auth.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
 // register new user
-export const registerUser = async (req, res) => {
+export const registerAdmin = async (req, res) => {
   const { email, phoneNumber, userName, password } = req.body;
   
   try {
@@ -25,6 +26,7 @@ export const registerUser = async (req, res) => {
       password,
       startDate,
       endDate,
+      userType: 'admin'
     });
 
     await newUser.save();
@@ -34,6 +36,51 @@ export const registerUser = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+//  addClient by admin 
+export const addClient = async (req, res) => {
+  const authResult = await authenticateUser(req, res);
+  if (authResult.status !== 200) {
+    return res.status(authResult.status).json(authResult.response);
+  }
+  const { user } = authResult;
+  // check if admin or not 
+  if (user.userType !== 'admin') {
+    return res.status(403).json({ error: "Access Denied" });
+  }
+  const { email, phoneNumber, userName, password } = req.body;
+
+  try {
+    const existingUser = await userModel.findOne({
+      $or: [{ email: email }, { userName: userName }],
+    });
+    if (existingUser) {
+      return res.status(409).json({ error: "User already exists" });
+    }
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setFullYear(endDate.getFullYear() + 1);
+
+    const newUser = new userModel({
+      email,
+      phoneNumber,
+      userName,
+      password,
+      startDate,
+      endDate,
+      addedBy: user._id,
+      userType: 'client'
+    });
+    await newUser.save();
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+
 
 // login user
 export const loginUser = async (req, res) => {

@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema(
         type: String,
         required: false,
       },
+      userType: {
+        type: String,
+        default: null
+      },
       routers: [
         {
           router: {
@@ -38,6 +42,10 @@ const userSchema = new mongoose.Schema(
           }
         }
       ],
+      addedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null
+      },
     }
   );
   

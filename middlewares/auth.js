@@ -23,7 +23,6 @@ export const authenticateUser = async (req, res) => {
     if (currentDate > endDate) {
       return { status: 403, response: { error: "Account Expired" } };
     }
-
     return { status: 200, user };
 
   } catch (error) {

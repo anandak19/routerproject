@@ -11,6 +11,10 @@ export const addRouter = async (req, res) => {
   }
 
   const { user } = authResult;
+  // check if admin or not 
+  if (user.userType !== 'admin') {
+    return res.status(403).json({ error: "Access Denied" });
+  }
 
   const { dns, port, userName, password, hotspot, deviceName } = req.body;
 
