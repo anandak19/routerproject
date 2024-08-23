@@ -26,3 +26,9 @@ Method: DELETE,
 Token needed, 
 Url: http://localhost:3000/api/router/id    
 Replace id with actual router id
+
+**Add Voucher to Router:**
+Method: PATCH,
+Token needed, 
+Url: http://localhost:3000/api/router/voucher/<routerID>  
+Replace <routerID> with actual router id
