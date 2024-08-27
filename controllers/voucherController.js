@@ -49,3 +49,31 @@ export const addVoucherToRouter = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// to delete a voucher from router
+export const deleteVoucherFromRouter = async (req, res) => {
+  // Authenticate the user
+  const authResult = await authenticateUser(req, res);
+  if (authResult.status !== 200) {
+    return res.status(authResult.status).json(authResult.response);
+  }
+
+  const { routerId, voucherId } = req.params; 
+
+  try {
+    const updatedRouter = await routerModel.findByIdAndUpdate(
+      routerId,
+      { $pull: { vouchers: { _id: voucherId } } },
+      { new: true }
+    );
+
+    if (!updatedRouter) {
+      return res.status(404).json({ message: "Router not found" });
+    }
+
+    return res.status(200).json({ message: "Voucher deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting voucher:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
