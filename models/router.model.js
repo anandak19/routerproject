@@ -1,30 +1,27 @@
 import mongoose from "mongoose";
+import { generateDefaultProfiles } from "../utils/profileUtils.js";
 
 const voucherSchema = new mongoose.Schema({
-  voucherNumber: {
-    type: String,
-    required: true,
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
+    default: null,
   },
   profile: {
     type: String,
     required: true,
   },
-  phoneNumber: {
+  count: {
+    type: Number,
+    required: true,
+  },
+  cost: {
     type: Number,
     default: null,
   },
   addedDate: {
     type: Date,
-    default: null
-  },
-  expiryDate: {
-    type: Date,
-    default: null
-  },
-  userAdded: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Users",
-    default: null, 
+    default: null,
   },
 });
 
@@ -32,7 +29,7 @@ const routerSchema = new mongoose.Schema({
   userAdded: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Users",
-    default: null, 
+    default: null,
   },
   dns: {
     type: String,
@@ -58,7 +55,12 @@ const routerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  vouchers: [voucherSchema]
+  vouchers: [voucherSchema],
+  profiles: {
+    type: Map,
+    of: Number,
+    default: generateDefaultProfiles,
+  },
 });
 
 export default mongoose.model("Router", routerSchema);
