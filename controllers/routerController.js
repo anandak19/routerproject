@@ -3,7 +3,7 @@ import routerModel from "../models/router.model.js";
 import userModel from "../models/user.model.js";
 import mongoose from "mongoose";
 
-// to add new router
+// to add new router --
 export const addRouter = async (req, res) => {
   const authResult = await authenticateUser(req, res);
   if (authResult.status !== 200) {
@@ -11,6 +11,10 @@ export const addRouter = async (req, res) => {
   }
 
   const { user } = authResult;
+  // check if admin or not 
+  if (user.userType !== 'admin') {
+    return res.status(403).json({ error: "Access Denied" });
+  }
 
   const { dns, port, userName, password, hotspot, deviceName } = req.body;
 
@@ -67,7 +71,7 @@ export const addRouter = async (req, res) => {
   }
 };
 
-// to get all routers of a user
+// to get all routers of a user --
 export const getRouterByUserId = async (req, res) => {
   const authResult = await authenticateUser(req, res);
   if (authResult.status !== 200) {
