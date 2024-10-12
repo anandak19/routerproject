@@ -5,16 +5,47 @@ import routerModel from "../models/router.model.js";
 // Function to get total number of vouchers added in a day under a specific router
 export const getTotalVouchersForDay = async (req, res) => {
   const { routerId } = req.params;
+  const { period } = req.query;
+  let startDate, endDate;
 
   try {
+    const now = new Date();
 
-    // Change this and test it for :  day wise, week wise, this motnth wise and (last month wise)
-    const startDate = new Date();
-    startDate.setUTCHours(0, 0, 0, 0);
-    const endDate = new Date();
-    endDate.setUTCHours(23, 59, 59, 999);
+    switch (period) {
+      case "day":
+        startDate = new Date();
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date();
+        endDate.setUTCHours(23, 59, 59, 999);
+        break;
 
+      case "week":
+        // Week-wise: Start from Monday of the current week, end today,
+        startDate = new Date(now.setDate(now.getDate() - now.getDay() + 1));
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date();
+        endDate.setUTCHours(23, 59, 59, 999);
+        break;
 
+      case "thisMonth":
+        // This month: Start from the 1st of the current month, end today
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date();
+        endDate.setUTCHours(23, 59, 59, 999);
+        break;
+
+      case "lastMonth":
+        // Last month: Start from the 1st of the last month, end on the last day of the last month
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+        endDate.setUTCHours(23, 59, 59, 999);
+        break;
+
+      default:
+        return res.status(400).json({ error: "Invalid period parameter" });
+    }
 
     // Aggregation pipeline for total cost
     const aggregationPipeline = [
@@ -81,4 +112,3 @@ export const getTotalVouchersForDay = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
