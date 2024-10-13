@@ -14,22 +14,23 @@ export const getTotalVouchersForDay = async (req, res) => {
     switch (period) {
       case "day":
         startDate = new Date();
-        startDate.setUTCHours(0, 0, 0, 0);
+        startDate.setHours(0, 0, 0, 0); 
         endDate = new Date();
-        endDate.setUTCHours(23, 59, 59, 999);
+        endDate.setHours(23, 59, 59, 999); 
+        
         break;
 
       case "week":
-        // Week-wise: Start from Monday of the current week, end today,
-        startDate = new Date(now.setDate(now.getDate() - now.getDay() + 1));
+        startDate = new Date(now.setDate(now.getDate() - 7));
         startDate.setUTCHours(0, 0, 0, 0);
+        
         endDate = new Date();
         endDate.setUTCHours(23, 59, 59, 999);
         break;
 
       case "thisMonth":
         // This month: Start from the 1st of the current month, end today
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate = new Date(now.setDate(now.getDate() - 30));
         startDate.setUTCHours(0, 0, 0, 0);
         endDate = new Date();
         endDate.setUTCHours(23, 59, 59, 999);
