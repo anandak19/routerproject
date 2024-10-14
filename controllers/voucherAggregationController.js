@@ -17,22 +17,20 @@ export const getTotalVouchersForDay = async (req, res) => {
         startDate.setHours(0, 0, 0, 0); 
         endDate = new Date();
         endDate.setHours(23, 59, 59, 999); 
-        
         break;
 
       case "week":
         startDate = new Date(now.setDate(now.getDate() - 7));
         startDate.setUTCHours(0, 0, 0, 0);
-        
         endDate = new Date();
         endDate.setUTCHours(23, 59, 59, 999);
         break;
 
       case "thisMonth":
         // This month: Start from the 1st of the current month, end today
-        startDate = new Date(now.setDate(now.getDate() - 30));
+        startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
         startDate.setUTCHours(0, 0, 0, 0);
-        endDate = new Date();
+        endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0));
         endDate.setUTCHours(23, 59, 59, 999);
         break;
 
@@ -50,18 +48,32 @@ export const getTotalVouchersForDay = async (req, res) => {
 
     // Aggregation pipeline for total cost
     const aggregationPipeline = [
+      // Early match on _id to reduce the number of documents processed
       {
         $match: {
           _id: mongoose.Types.ObjectId.createFromHexString(routerId),
+        },
+      },
+      // Only project necessary fields (vouchers and _id) to minimize memory usage
+      {
+        $project: {
+          vouchers: 1,
+        },
+      },
+      // Unwind the vouchers array
+      {
+        $unwind: "$vouchers",
+      },
+      // Match vouchers within the specified date range
+      {
+        $match: {
           "vouchers.addedDate": {
             $gte: startDate,
             $lt: endDate,
           },
         },
       },
-      {
-        $unwind: "$vouchers",
-      },
+      // Group the results to calculate the total cost
       {
         $group: {
           _id: null,
@@ -69,21 +81,31 @@ export const getTotalVouchersForDay = async (req, res) => {
         },
       },
     ];
+    
+    
 
     // Aggregation pipeline for profile-wise count
     const aggregationPipelineProfile = [
+      // Early match on _id to reduce the number of documents processed
       {
         $match: {
           _id: mongoose.Types.ObjectId.createFromHexString(routerId),
+        },
+      },
+      // Unwind the vouchers array to work with individual voucher documents
+      {
+        $unwind: "$vouchers",
+      },
+      // Match vouchers within the specified date range
+      {
+        $match: {
           "vouchers.addedDate": {
             $gte: startDate,
             $lt: endDate,
           },
         },
       },
-      {
-        $unwind: "$vouchers",
-      },
+      // Group by the profile field and calculate the total voucher count
       {
         $group: {
           _id: "$vouchers.profile",
@@ -91,6 +113,7 @@ export const getTotalVouchersForDay = async (req, res) => {
         },
       },
     ];
+    
 
     const [result, profileResult] = await Promise.all([
       routerModel.aggregate(aggregationPipeline),

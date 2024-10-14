@@ -106,13 +106,14 @@ export const loginUser = async (req, res) => {
 
     // create a token 
     const userName = userData.userName;
+    const userId = userData._id; 
     const token = jwt.sign(
       { id: userData._id, userName },
       process.env.SECRET_KEY
     );
     
     // sending username and token to frontend 
-    res.status(200).json({ userName, token });
+    res.status(200).json({ userId,userName, token });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ error: "Internal server error" });
