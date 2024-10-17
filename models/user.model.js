@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema(
           addedAt: {
             type: Date,
             default: Date.now
+          },
+          totalCost: {
+            type: Number,
+            default: 0 
           }
         }
       ],

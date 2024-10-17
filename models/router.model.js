@@ -26,7 +26,6 @@ const voucherSchema = new mongoose.Schema({
   },
 });
 
-// Add index for vouchers.addedDate and profile for faster filtering in queries
 voucherSchema.index({ addedDate: 1, profile: 1 });
 
 // Router schema
@@ -60,7 +59,7 @@ const routerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  vouchers: [voucherSchema], // Embedded vouchers array
+  vouchers: [voucherSchema],
   profiles: {
     type: Map,
     of: Number,
@@ -68,8 +67,6 @@ const routerSchema = new mongoose.Schema({
   },
 });
 
-// Ensure indexing at the Router schema level if needed for specific queries
 routerSchema.index({ _id: 1, "vouchers.addedDate": 1 });
 
-// Export the Router model
 export default mongoose.model("Router", routerSchema);

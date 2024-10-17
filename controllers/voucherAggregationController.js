@@ -20,9 +20,10 @@ export const getTotalVouchersForDay = async (req, res) => {
         break;
 
       case "week":
-        startDate = new Date(now.setDate(now.getDate() - 7));
+        const currentDayOfWeek = now.getUTCDay();
+        startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - currentDayOfWeek));
         startDate.setUTCHours(0, 0, 0, 0);
-        endDate = new Date();
+        endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (6 - currentDayOfWeek)));
         endDate.setUTCHours(23, 59, 59, 999);
         break;
 
@@ -125,3 +126,4 @@ export const getTotalVouchersForDay = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
